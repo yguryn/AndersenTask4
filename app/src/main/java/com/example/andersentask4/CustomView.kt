@@ -12,13 +12,18 @@ import java.util.*
 import kotlin.math.cos
 import kotlin.math.sin
 
-
 class CustomView @JvmOverloads constructor(
         context: Context,
-        attr: AttributeSet? = null,
+        attrs: AttributeSet? = null,
         defStyle: Int = 0,
-) : View(context, attr, defStyle) {
+) : View(context, attrs, defStyle) {
 
+    private var secondHandColor = Color.BLACK
+    private var minuteHandColor = Color.BLACK
+    private var hourHandColor = Color.BLACK
+    private var secondHandLength = 200f
+    private var minuteHandLength = 150f
+    private var hourHandLength = 125f
     private val bias = 300f
     private val rect = Rect()
     private val numbers = intArrayOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
@@ -41,15 +46,30 @@ class CustomView @JvmOverloads constructor(
     }
 
     private val paint: Paint = Paint().apply {
-        color = Color.RED
+        color = Color.BLACK
         strokeWidth = 10f
+    }
+
+    init {
+        context.theme.obtainStyledAttributes(attrs, R.styleable.CustomView,
+                0, 0).apply {
+            try {
+                secondHandColor = getColor(R.styleable.CustomView_secondHandColor, Color.BLACK)
+                minuteHandColor = getColor(R.styleable.CustomView_minuteHandColor, Color.BLACK)
+                hourHandColor = getColor(R.styleable.CustomView_hourHandColor, Color.CYAN)
+                secondHandLength = getFloat(R.styleable.CustomView_secondLength, 200f)
+                minuteHandLength = getFloat(R.styleable.CustomView_minuteLength, 150f)
+                hourHandLength = getFloat(R.styleable.CustomView_hourLength, 125f)
+            } finally {
+                recycle()
+            }
+        }
     }
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
 
         canvas?.drawCircle((width / 2).toFloat(), (height / 2.0).toFloat(), bias, circlePaint)
-
         drawDivision(canvas)
         drawNum(canvas)
 
@@ -63,26 +83,24 @@ class CustomView @JvmOverloads constructor(
                 isHour = false, isSecond = false)
         drawHandLine(canvas, calendar.get(Calendar.SECOND).toFloat(),
                 isHour = false, isSecond = true)
-
         invalidate()
     }
-
 
     private fun drawHandLine(canvas: Canvas?, moment: Float, isHour: Boolean, isSecond: Boolean) {
         val angle = Math.PI * moment / 30 - Math.PI / 2
         val arrowSize: Float
         when {
             isHour -> {
-                paint.color = Color.BLUE
-                arrowSize = bias - 175
+                paint.color = hourHandColor
+                arrowSize = hourHandLength
             }
             isSecond -> {
-                paint.color = Color.BLACK
-                arrowSize = bias - 100
+                paint.color = secondHandColor
+                arrowSize = secondHandLength
             }
             else -> {
-                arrowSize = bias - 150
-                paint.color = Color.RED
+                paint.color = minuteHandColor
+                arrowSize = minuteHandLength
             }
         }
         canvas?.drawLine((width / 2).toFloat(), (height / 2).toFloat(),
